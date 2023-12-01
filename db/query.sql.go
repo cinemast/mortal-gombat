@@ -10,6 +10,62 @@ import (
 	"database/sql"
 )
 
+const changeAuthorEmail = `-- name: ChangeAuthorEmail :exec
+UPDATE author SET email = ?, updated_at = datetime('now') WHERE id = ?
+`
+
+type ChangeAuthorEmailParams struct {
+	Email string
+	ID    int64
+}
+
+func (q *Queries) ChangeAuthorEmail(ctx context.Context, arg ChangeAuthorEmailParams) error {
+	_, err := q.db.ExecContext(ctx, changeAuthorEmail, arg.Email, arg.ID)
+	return err
+}
+
+const changeCommentBody = `-- name: ChangeCommentBody :exec
+UPDATE entry SET body = ?, updated_at = datetime('now') WHERE id = ?
+`
+
+type ChangeCommentBodyParams struct {
+	Body sql.NullString
+	ID   int64
+}
+
+func (q *Queries) ChangeCommentBody(ctx context.Context, arg ChangeCommentBodyParams) error {
+	_, err := q.db.ExecContext(ctx, changeCommentBody, arg.Body, arg.ID)
+	return err
+}
+
+const changeEntryBody = `-- name: ChangeEntryBody :exec
+UPDATE entry SET body = ?, updated_at = datetime('now') WHERE id = ?
+`
+
+type ChangeEntryBodyParams struct {
+	Body sql.NullString
+	ID   int64
+}
+
+func (q *Queries) ChangeEntryBody(ctx context.Context, arg ChangeEntryBodyParams) error {
+	_, err := q.db.ExecContext(ctx, changeEntryBody, arg.Body, arg.ID)
+	return err
+}
+
+const changeEntryTitle = `-- name: ChangeEntryTitle :exec
+UPDATE entry SET title = ?, updated_at = datetime('now') WHERE id = ?
+`
+
+type ChangeEntryTitleParams struct {
+	Title string
+	ID    int64
+}
+
+func (q *Queries) ChangeEntryTitle(ctx context.Context, arg ChangeEntryTitleParams) error {
+	_, err := q.db.ExecContext(ctx, changeEntryTitle, arg.Title, arg.ID)
+	return err
+}
+
 const createAuthor = `-- name: CreateAuthor :one
 INSERT INTO author (email, created_at, updated_at) VALUES (?, datetime('now'), datetime('now'))
 RETURNING id, email, created_at, updated_at
@@ -75,4 +131,99 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry
 		&i.AuthorID,
 	)
 	return i, err
+}
+
+const deleteAuthor = `-- name: DeleteAuthor :exec
+DELETE FROM author WHERE id = ?
+`
+
+func (q *Queries) DeleteAuthor(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteAuthor, id)
+	return err
+}
+
+const deleteComment = `-- name: DeleteComment :exec
+DELETE FROM comment WHERE id = ?
+`
+
+func (q *Queries) DeleteComment(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteComment, id)
+	return err
+}
+
+const deleteEntry = `-- name: DeleteEntry :exec
+DELETE FROM entry WHERE id = ?
+`
+
+func (q *Queries) DeleteEntry(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteEntry, id)
+	return err
+}
+
+const getCommentsByEntry = `-- name: GetCommentsByEntry :many
+SELECT id, body, entry_id, author_id, created_at, updated_at FROM comment where entry_id = ?
+`
+
+func (q *Queries) GetCommentsByEntry(ctx context.Context, entryID int64) ([]Comment, error) {
+	rows, err := q.db.QueryContext(ctx, getCommentsByEntry, entryID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Comment
+	for rows.Next() {
+		var i Comment
+		if err := rows.Scan(
+			&i.ID,
+			&i.Body,
+			&i.EntryID,
+			&i.AuthorID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEntryByAuthor = `-- name: GetEntryByAuthor :many
+SELECT id, title, body, created_at, updated_at, author_id FROM entry where author_id = ?
+`
+
+func (q *Queries) GetEntryByAuthor(ctx context.Context, authorID int64) ([]Entry, error) {
+	rows, err := q.db.QueryContext(ctx, getEntryByAuthor, authorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Entry
+	for rows.Next() {
+		var i Entry
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Body,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.AuthorID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
