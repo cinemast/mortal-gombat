@@ -40,3 +40,6 @@ UPDATE entry SET body = ?, updated_at = datetime('now') WHERE id = ?;
 
 -- name: GetCommentsByEntry :many
 SELECT * FROM comment where entry_id = ?;
+
+-- name: UpdateTS :exec
+UPDATE comment SET updated_at = ? WHERE id = ?;

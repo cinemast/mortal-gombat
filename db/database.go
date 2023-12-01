@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
+	"time"
 )
 
 type Db struct {
@@ -49,4 +51,21 @@ func TxR[T any](ctx context.Context, db *Db, statements func(ctx context.Context
 		return nil, err
 	}
 	return r, tx.Commit()
+}
+
+type SqliteDateTime struct {
+	time.Time
+}
+
+func (ts *SqliteDateTime) Scan(src any) error {
+	t, err := time.Parse(time.DateTime, src.(string))
+	if err != nil {
+		return err
+	}
+	*ts = SqliteDateTime{t}
+	return nil
+}
+
+func (ts SqliteDateTime) Value() (driver.Value, error) {
+	return driver.Value(ts.Format(time.DateTime)), nil
 }

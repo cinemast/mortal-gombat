@@ -227,3 +227,17 @@ func (q *Queries) GetEntryByAuthor(ctx context.Context, authorID int64) ([]Entry
 	}
 	return items, nil
 }
+
+const updateTS = `-- name: UpdateTS :exec
+UPDATE comment SET updated_at = ? WHERE id = ?
+`
+
+type UpdateTSParams struct {
+	UpdatedAt SqliteDateTime
+	ID        int64
+}
+
+func (q *Queries) UpdateTS(ctx context.Context, arg UpdateTSParams) error {
+	_, err := q.db.ExecContext(ctx, updateTS, arg.UpdatedAt, arg.ID)
+	return err
+}

@@ -7,3 +7,10 @@ sql:
       go:
         package: "db"
         out: "db"
+        overrides:
+          - column: "*.created_at"
+            go_type:
+              type: "SqliteDateTime"
+          - column: "*.updated_at"
+            go_type:
+              type: "SqliteDateTime"

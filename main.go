@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/cinemast/mortal-gombat/db"
 	_ "github.com/mattn/go-sqlite3"
+	"time"
 )
 
 //go:generate docker run --rm -v .:/src -w /src sqlc/sqlc generate
@@ -50,6 +51,14 @@ func main() {
 					Body:     "some comment",
 					AuthorID: a.ID,
 					EntryID:  e.ID,
+				})
+				if err != nil {
+					return err
+				}
+
+				err = tx.UpdateTS(ctx, db.UpdateTSParams{
+					UpdatedAt: db.SqliteDateTime{time.Now()},
+					ID:        comment.ID,
 				})
 				if err != nil {
 					return err

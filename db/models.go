@@ -11,8 +11,8 @@ import (
 type Author struct {
 	ID        int64
 	Email     string
-	CreatedAt string
-	UpdatedAt string
+	CreatedAt SqliteDateTime
+	UpdatedAt SqliteDateTime
 }
 
 type Comment struct {
@@ -20,15 +20,15 @@ type Comment struct {
 	Body      string
 	EntryID   int64
 	AuthorID  int64
-	CreatedAt string
-	UpdatedAt string
+	CreatedAt SqliteDateTime
+	UpdatedAt SqliteDateTime
 }
 
 type Entry struct {
 	ID        int64
 	Title     string
 	Body      sql.NullString
-	CreatedAt string
-	UpdatedAt string
+	CreatedAt SqliteDateTime
+	UpdatedAt SqliteDateTime
 	AuthorID  int64
 }
